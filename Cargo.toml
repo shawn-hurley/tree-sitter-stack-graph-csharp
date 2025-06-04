@@ -1,0 +1,41 @@
+[package]
+name = "tree-sitter-stack-graphs-c-sharp"
+version = "0.1.0"
+description = "Stack graphs definition for c-sharp using tree-sitter-c-sharp"
+readme = "README.md"
+keywords = ["tree-sitter", "stack-graphs", "c-sharp"]
+authors = [
+    "shawn@hurley.page",
+]
+license = "Apache-2.0"
+edition = "2018"
+
+[[bin]]
+name = "tree-sitter-stack-graphs-c-sharp"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[lib]
+name = "tree_sitter_stack_graphs_c_sharp"
+test = false
+
+[[test]]
+name = "test"
+path = "rust/test.rs"
+harness = false
+
+[features]
+cli = ["anyhow", "clap", "tree-sitter-stack-graphs/cli"]
+anyhow = ["dep:anyhow"]
+
+[dependencies]
+anyhow = { version = "1.0", optional = true }
+clap = { version = "4", optional = true, features = ["derive"] }
+tree-sitter-stack-graphs = { version = "0.10.0" }
+tree-sitter-c-sharp = "0.23"
+create = "0.1.0"
+stack-graphs = "0.14.1"
+
+[dev-dependencies]
+anyhow = "1.0"
+tree-sitter-stack-graphs = { version = "0.10.0", features = ["cli"] }
