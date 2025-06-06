@@ -11,12 +11,12 @@
 ;; Global Variables
 ;; ^^^^^^^^^^^^^^^^
 
-global FILE_PATH           ; project relative path of this file
+;global FILE_PATH           ; project relative path of this file
 global PROJECT_NAME = ""   ; project name, used to isolate different projects in the same stack graph
 global ROOT_PATH = ""      ; path to the project root directory
 
-global JUMP_TO_SCOPE_NODE
-global ROOT_NODE
+;global JUMP_TO_SCOPE_NODE
+;global ROOT_NODE
 
 ;; Attribute Shorthands
 ;; ^^^^^^^^^^^^^^^^^^^^
@@ -41,3 +41,101 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
 ;; Root Program
 ;; ^^^^^^^^^^^
 
+; We nned to mark all the qualified names as nodes. then we need to have edges from those qualified nodes to the use of them.
+
+(using_directive
+  [
+    (identifier) @name
+    (qualified_name) @name
+  ]) @using {
+  node import
+  node import_def
+  
+  
+  attr (import) type = "push_symbol", symbol = (source-text @name), source_node = @using
+}
+
+(namespace_declaration
+  name: [
+    (identifier) @namespace
+    (qualified_name) @namespace
+  ]
+) @decl {
+  node @namespace.def
+  node namespace_def
+
+  attr (@namespace.def) type = "pop_symbol", symbol = (source-text @namespace), source_node = @decl, is_definition, syntax_type = "namespace-declaration"
+  attr (namespace_def) pop_symbol = "."
+  edge @namespace.def -> namespace_def
+}
+
+(class_declaration
+  name: (identifier) @classname
+) @class_declaration {
+  node @class_declaration.def
+  node class_def
+
+  attr (@class_declaration.def) type = "pop_symbol", symbol = (source-text @classname), source_node = @class_declaration, is_definition, syntax_type = "class-def"
+  attr (class_def) pop_symbol = "."
+  edge @class_declaration.def -> class_def
+}
+
+;; use this pattern to connect all the definitions in a namespace to the namespace.
+(namespace_declaration
+  name: [
+    (identifier) @namespace
+    (qualified_name) @namespace
+  ]
+  body: (declaration_list 
+    (class_declaration) @class_declaration
+  )
+) @_unused {
+    edge @namespace.def -> @class_declaration.def
+    print "here",  @namespace.def, @class_declaration.def
+}
+
+;; To find where we are using things, we need to look at the statements. 
+(method_declaration
+  name: (identifier) @method_name
+) @decl {
+  node @decl.def
+
+  attr (@decl.def) type = "pop_symbol", symbol = (source-text @method_name), source_node = @decl, is_definition, syntax_type = "method_name"
+}
+
+(method_declaration
+  body: ([
+    (block 
+      (statement)? @statement
+    )
+    (arrow_expression_clause
+      (_)? @expression
+    )
+  ])
+) @decl {
+  if some @statement {
+    node @statement.def
+    edge @decl.def -> @statement.def
+  }
+  if some @expression{
+    node @expression.def
+    edge @decl.def -> @expression.def
+  }
+}
+
+(local_declaration_statement
+  (variable_declaration
+    (variable_declarator
+      (element_access_expression
+        expression: (member_access_expression
+          expression: (identifier) @ref_name
+          name: (identifier) @ref_name2
+        )
+      )
+    )
+  )
+) @decl {
+  print @ref_name, (source-text @ref_name)
+  print @ref_name2, (source-text @ref_name2)
+  print @decl, (source-text @decl)
+}

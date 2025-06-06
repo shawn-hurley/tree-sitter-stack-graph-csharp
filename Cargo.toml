@@ -27,6 +27,7 @@ harness = false
 [features]
 cli = ["anyhow", "clap", "tree-sitter-stack-graphs/cli"]
 anyhow = ["dep:anyhow"]
+clap = ["dep:clap"]
 
 [dependencies]
 anyhow = { version = "1.0", optional = true }
@@ -35,6 +36,7 @@ tree-sitter-stack-graphs = { version = "0.10.0" }
 tree-sitter-c-sharp = "0.23"
 create = "0.1.0"
 stack-graphs = "0.14.1"
+regex = "1.11.1"
 
 [dev-dependencies]
 anyhow = "1.0"
